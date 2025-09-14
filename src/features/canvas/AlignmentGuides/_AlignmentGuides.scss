@@ -1,0 +1,142 @@
+// src/components/AlignmentGuides/_AlignmentGuides.scss
+.alignment-guides {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+
+    .guide-line {
+        position: absolute;
+        background-color: #4a90e2;
+        opacity: 0.8;
+        animation: fadeIn 0.2s ease-in-out;
+
+        &.guide-vertical {
+            width: 1px;
+            top: 0;
+        }
+
+        &.guide-horizontal {
+            height: 1px;
+            left: 0;
+        }
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            background-color: #4a90e2;
+            opacity: 0.4;
+        }
+
+        &.guide-vertical::before,
+        &.guide-vertical::after {
+            width: 5px;
+            height: 1px;
+            left: -2px;
+        }
+
+        &.guide-vertical::before {
+            top: 0;
+        }
+
+        &.guide-vertical::after {
+            bottom: 0;
+        }
+
+        &.guide-horizontal::before,
+        &.guide-horizontal::after {
+            width: 1px;
+            height: 5px;
+            top: -2px;
+        }
+
+        &.guide-horizontal::before {
+            left: 0;
+        }
+
+        &.guide-horizontal::after {
+            right: 0;
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 0.8;
+    }
+}
+
+// \uac70\ub9ac \ud45c\uc2dc\uae30
+.distance-indicator {
+    position: absolute;
+    pointer-events: none;
+    z-index: 9998;
+
+    &.distance-horizontal {
+        height: 1px;
+        background: linear-gradient(to right, transparent 0%, #ff6b6b 20%, #ff6b6b 80%, transparent 100%);
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            width: 1px;
+            height: 9px;
+            background: #ff6b6b;
+            top: -4px;
+        }
+
+        &::before {
+            left: 0;
+        }
+
+        &::after {
+            right: 0;
+        }
+    }
+
+    &.distance-vertical {
+        width: 1px;
+        background: linear-gradient(to bottom, transparent 0%, #ff6b6b 20%, #ff6b6b 80%, transparent 100%);
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            width: 9px;
+            height: 1px;
+            background: #ff6b6b;
+            left: -4px;
+        }
+
+        &::before {
+            top: 0;
+        }
+
+        &::after {
+            bottom: 0;
+        }
+    }
+
+    .distance-label {
+        position: absolute;
+        background: #ff6b6b;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 3px;
+        white-space: nowrap;
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+}

@@ -1,0 +1,52 @@
+/* CDN 기반 한글 폰트 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gothic+A1:wght@100;300;400;500;700;900&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css');
+
+/* 폰트 클래스 정의 */
+.font-pretendard {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.font-noto-sans {
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.font-nanum-gothic {
+    font-family: 'Nanum Gothic', sans-serif;
+}
+
+.font-nanum-myeongjo {
+    font-family: 'Nanum Myeongjo', serif;
+}
+
+.font-black-han-sans {
+    font-family: 'Black Han Sans', sans-serif;
+}
+
+.font-jua {
+    font-family: 'Jua', sans-serif;
+}
+
+.font-do-hyeon {
+    font-family: 'Do Hyeon', sans-serif;
+}
+
+.font-nanum-pen {
+    font-family: 'Nanum Pen Script', cursive;
+}
+
+.font-gamja-flower {
+    font-family: 'Gamja Flower', cursive;
+}
+
+.font-gothic-a1 {
+    font-family: 'Gothic A1', sans-serif;
+}

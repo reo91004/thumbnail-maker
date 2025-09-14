@@ -1,0 +1,46 @@
+// src/components/ToolPanel/ToolPanel.scss
+@import '../../styles/modern-theme.scss';
+
+.tool-panel {
+    width: 60px;
+    background: var(--dark-surface);
+    border-right: 1px solid var(--dark-border);
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md) 0;
+    gap: var(--spacing-xs);
+
+    .tool-btn {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-base);
+
+        svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        &:hover {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+        }
+
+        &.active {
+            background: var(--primary);
+            color: white;
+
+            &:hover {
+                background: var(--primary-light);
+            }
+        }
+    }
+}

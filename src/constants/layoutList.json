@@ -1,0 +1,86 @@
+[
+    {
+        "name": "layout1",
+        "layout": [
+            {
+                "type": "text",
+                "name": "제목을 입력하세요",
+                "style": {
+                    "fontSize": "48px",
+                    "fontWeight": "bold",
+                    "color": "rgba(255,255,255,1)",
+                    "y": "50%",
+                    "x": "50%",
+                    "textShadow": "2px 2px 2px rgba(0,0,0,.5)"
+                }
+            }
+        ]
+    },
+    {
+        "name": "layout2",
+        "layout": [
+            {
+                "type": "text",
+                "name": "제목을 입력하세요",
+                "style": {
+                    "fontSize": "48px",
+                    "fontWeight": "bold",
+                    "color": "rgba(255,255,255,1)",
+                    "y": "44%",
+                    "x": "50%",
+                    "textShadow": "2px 2px 2px rgba(0,0,0,.5)"
+                }
+            },
+            {
+                "type": "text",
+                "name": "부제목을 입력하세요",
+                "style": {
+                    "fontSize": "28px",
+                    "color": "rgba(255,255,255,1)",
+                    "y": "60%",
+                    "x": "50%",
+                    "textShadow": "2px 2px 2px rgba(0,0,0,.5)"
+                }
+            }
+        ]
+    },
+    {
+        "name": "layout3",
+        "layout": [
+            {
+                "type": "text",
+                "name": "제목을 입력하세요",
+                "style": {
+                    "fontSize": "48px",
+                    "fontWeight": "bold",
+                    "color": "rgba(255,255,255,1)",
+                    "y": "45%",
+                    "x": "50%",
+                    "textShadow": "2px 2px 2px rgba(0,0,0,.5)"
+                }
+            },
+            {
+                "type": "text",
+                "name": "부제목을 입력하세요",
+                "style": {
+                    "fontSize": "28px",
+                    "color": "rgba(255,255,255,1)",
+                    "y": "60%",
+                    "x": "50%",
+                    "textShadow": "2px 2px 2px rgba(0,0,0,.5)"
+                }
+            },
+            {
+                "type": "text",
+                "name": "소제목을 입력하세요",
+                "style": {
+                    "fontSize": "16px",
+                    "color": "rgba(255,255,255,1)",
+                    "y": "85%",
+                    "x": "50%",
+                    "textShadow": "2px 2px 2px rgba(0,0,0,.5)"
+                }
+            }
+        ]
+    }
+]

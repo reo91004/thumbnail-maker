@@ -1,0 +1,17 @@
+{
+  "extends": [
+    "react-app",
+    "react-app/jest"
+  ],
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "warn",
+    "react/prop-types": "off",
+    "react-hooks/exhaustive-deps": "warn",
+    "eqeqeq": ["error", "always"],
+    "indent": ["error", 2],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "comma-dangle": ["error", "only-multiline"]
+  }
+}
