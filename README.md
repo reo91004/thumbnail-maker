@@ -14,7 +14,7 @@ Velog나 개발 블로그, 유튜브 등의 플랫폼에서 쉽게 썸네일을 
 
 - **개발자**: [Reo](https://reo10004.com)
 - **GitHub**: [reo91004/thumbnail-maker](https://github.com/reo91004/thumbnail-maker)
-- **라이브 데모**: [Thumbnail Maker 사용하기](https://reo10004.com/thumbnail-maker)
+- **라이브 데모**: [Thumbnail Maker 사용하기](http://reo91004.com/thumbnail-maker)
 
 ## ✨ 주요 기능
 
