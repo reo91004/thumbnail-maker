@@ -25,7 +25,17 @@ function BackgroundForm(props) {
     return savedImages ? JSON.parse(savedImages) : [];
   });
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(() => {
+    // 배경이 이미지인 경우 선택된 이미지 인덱스 찾기
+    if (background && background.type === 'image') {
+      const images = localStorage.getItem('thumbnailMakerImages');
+      if (images) {
+        const savedImages = JSON.parse(images);
+        return savedImages.findIndex(img => img === background.background);
+      }
+    }
+    return null;
+  });
   useEffect(() => {
     if (currentColorItem.index !== null) {
       const current = colorList[currentColorItem.index];
@@ -41,13 +51,6 @@ function BackgroundForm(props) {
       }
     }
   }, [currentColorItem]);
-
-  useEffect(() => {
-    setBackground({
-      type: currentColorItem.type,
-      background: getBackgroundStyle(colorList[currentColorItem.index]),
-    });
-  }, [color]);
 
   function getBackgroundStyle(colorItem) {
     return colorItem.type === 'color' ? getRgba(colorItem.rgb) : getGradient(colorItem);
@@ -69,6 +72,12 @@ function BackgroundForm(props) {
     }
     setColor({ ...color, ...newColor });
     setColorList(currentColorList);
+
+    // 색상 변경 시 배경 업데이트
+    setBackground({
+      type: currentColorItem.type,
+      background: getBackgroundStyle(currentColorList[currentColorItem.index]),
+    });
   };
 
   function handleGradient(e) {
