@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './AssetsPanel.scss';
-import { MdDelete, MdLock, MdLockOpen } from 'react-icons/md';
+import { MdDelete, MdLock, MdLockOpen, MdRestartAlt } from 'react-icons/md';
 
-function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset }) {
+function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, canvasSize, selectedLayoutIndex }) {
   const [assetTexts, setAssetTexts] = useState({});
 
   const handleTextChange = (assetId, newText) => {
@@ -36,6 +36,27 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset })
     setCanvasAssets(updatedAssets);
   };
 
+  const resetAssetPosition = (assetId) => {
+    const updatedAssets = assets.map((asset) => {
+      if (asset.id === assetId) {
+        const originalX = asset.originalX || '50%';
+        const originalY = asset.originalY || '50%';
+
+        return {
+          ...asset,
+          style: {
+            ...asset.style,
+            x: originalX,
+            y: originalY,
+            resetFlag: true,
+          },
+        };
+      }
+      return asset;
+    });
+    setCanvasAssets(updatedAssets);
+  };
+
   const handleAssetClick = (asset) => {
     setCurrentAsset({
       id: asset.id,
@@ -49,10 +70,13 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset })
   const handleStyleChange = (assetId, property, value) => {
     const updatedAssets = assets.map((asset) => {
       if (asset.id === assetId) {
+        const { x, y, ...currentStyleWithoutPosition } = asset.style || {};
         return {
           ...asset,
           style: {
-            ...asset.style,
+            x,
+            y,
+            ...currentStyleWithoutPosition,
             [property]: value,
           },
         };
@@ -63,6 +87,16 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset })
   };
 
   const addNewText = (type) => {
+    const layoutIndex = selectedLayoutIndex !== undefined ? selectedLayoutIndex : 2;
+
+    const layoutPositions = {
+      0: { title: '50%', subtitle: '60%', body: '70%' },
+      1: { title: '44%', subtitle: '60%', body: '70%' },
+      2: { title: '45%', subtitle: '60%', body: '90%' },
+    };
+
+    const positions = layoutPositions[layoutIndex] || layoutPositions[2];
+
     const textTemplates = {
       title: {
         name: '제목을 입력하세요',
@@ -70,37 +104,46 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset })
           fontSize: '48px',
           fontWeight: 'bold',
           x: '50%',
-          y: '50%',
+          y: positions.title,
           color: 'rgba(255,255,255,1)',
           textShadow: '2px 2px 2px rgba(0,0,0,.5)',
         },
+        originalX: '50%',
+        originalY: positions.title,
       },
       subtitle: {
         name: '부제목을 입력하세요',
         style: {
           fontSize: '28px',
           x: '50%',
-          y: '60%',
+          y: positions.subtitle,
           color: 'rgba(255,255,255,1)',
           textShadow: '2px 2px 2px rgba(0,0,0,.5)',
         },
+        originalX: '50%',
+        originalY: positions.subtitle,
       },
       body: {
         name: '본문을 입력하세요',
         style: {
           fontSize: '16px',
           x: '50%',
-          y: '70%',
+          y: positions.body,
           color: 'rgba(255,255,255,1)',
           textShadow: '1px 1px 1px rgba(0,0,0,.3)',
         },
+        originalX: '50%',
+        originalY: positions.body,
       },
     };
 
+    const template = textTemplates[type];
     const newAsset = {
-      ...textTemplates[type],
+      ...template,
       type: 'text',
       id: `asset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      originalX: template.originalX,
+      originalY: template.originalY,
     };
 
     setCanvasAssets([...assets, newAsset]);
@@ -155,6 +198,18 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset })
                           : asset.type}
                   </span>
                   <div className="asset-actions">
+                    {asset.type === 'text' && (
+                      <button
+                        className="btn-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          resetAssetPosition(asset.id);
+                        }}
+                        title="위치 초기화"
+                      >
+                        <MdRestartAlt />
+                      </button>
+                    )}
                     <button
                       className="btn-icon"
                       onClick={(e) => {

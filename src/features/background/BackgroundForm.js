@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { SketchPicker } from 'react-color';
-import './_BackgroundForm.scss';
 import './_BackgroundForm-new.scss';
 import { RiUploadLine } from 'react-icons/ri';
 import { getRgba, getGradient } from '../../utils/color.js';
@@ -9,10 +8,9 @@ import defaultColorList from '../../constants/defaultColorList.json';
 const randomColorIndex = defaultColorList.length - 2;
 const randomGradientIndex = defaultColorList.length - 1;
 
-function LayoutForm(props) {
+function BackgroundForm(props) {
   const { setBackground, background } = props;
   const gradientItemStartIndex = 8;
-  const [currentTab, setCurrentTab] = useState(0);
   const [colorList, setColorList] = useState(defaultColorList);
   const [currentColorItem, setCurrentColorItem] = useState({
     index: gradientItemStartIndex,
@@ -23,7 +21,6 @@ function LayoutForm(props) {
   const [gradientStyle, setGradientStyle] = useState(defaultColorList[gradientItemStartIndex]);
   const [color, setColor] = useState(defaultColorList[0].rgb);
   const [uploadedImages, setUploadedImages] = useState(() => {
-    // localStorage에서 이미지 불러오기
     const savedImages = localStorage.getItem('thumbnailMakerImages');
     return savedImages ? JSON.parse(savedImages) : [];
   });
@@ -88,9 +85,6 @@ function LayoutForm(props) {
     setBackground({ ...background, type: 'gradient', background: getGradient(newObject) });
   }
 
-  function handleTab(index) {
-    setCurrentTab(index);
-  }
 
   function handleBackground(url, index) {
     setSelectedImage(index);
@@ -304,4 +298,4 @@ function LayoutForm(props) {
   );
 }
 
-export default LayoutForm;
+export default BackgroundForm;

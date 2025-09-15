@@ -7,12 +7,10 @@ import Asset from '../../../features/canvas/Asset/Asset.js';
 import ThemeToggle from '../../ui/ThemeToggle/ThemeToggle';
 import { BsDownload } from 'react-icons/bs';
 import { MdSave, MdFolderOpen } from 'react-icons/md';
-// import domtoimage from 'dom-to-image';
 import html2canvas from 'html2canvas';
 
 function Main() {
   const [canvasSize, setCanvasSize] = useState({ width: 768, height: 402.094 });
-  // const [ratio, setRatio] = useState(null); // Currently unused
   const [background, setBackground] = useState({
     type: 'gradient',
     background: 'linear-gradient(45deg, rgba(255,206,217,1), rgba(160,193,238,1))',
@@ -30,6 +28,7 @@ function Main() {
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [activeTab, setActiveTab] = useState('template');
+  const [selectedLayoutIndex, setSelectedLayoutIndex] = useState(2);
   const Spinner = () => {
     return (
       <img
@@ -95,6 +94,29 @@ function Main() {
     const updatedAssets = canvasAssets.map((asset) => {
       if (asset.id === assetId) {
         return { ...asset, name: newContent };
+      }
+      return asset;
+    });
+    setCanvasAssets(updatedAssets);
+  }
+
+  function updateAssetPosition(assetId, x, y, removeResetFlag = false) {
+    const updatedAssets = canvasAssets.map((asset) => {
+      if (asset.id === assetId) {
+        const updatedStyle = {
+          ...asset.style,
+          x: x,
+          y: y,
+        };
+
+        if (removeResetFlag) {
+          delete updatedStyle.resetFlag;
+        }
+
+        return {
+          ...asset,
+          style: updatedStyle,
+        };
       }
       return asset;
     });
@@ -167,15 +189,13 @@ function Main() {
             <div
               id="canvas"
               className="canvas"
-              style={Object.assign(
-                {
-                  width: canvasSize.width,
-                  height: canvasSize.height,
-                },
-                background.type === 'image'
+              style={{
+                width: canvasSize.width,
+                height: canvasSize.height,
+                ...(background.type === 'image'
                   ? { backgroundImage: `url(${background.background})` }
-                  : { background: background.background }
-              )}
+                  : { background: background.background })
+              }}
             >
               {canvasAssets.map((element, index) => (
                 <Asset
@@ -189,6 +209,7 @@ function Main() {
                   setAssetStyle={setAssetStyle}
                   removeAsset={removeAsset}
                   updateAssetContent={updateAssetContent}
+                  updateAssetPosition={updateAssetPosition}
                 ></Asset>
               ))}
             </div>
@@ -267,10 +288,11 @@ function Main() {
           <div className="sidebar-content">
             {activeTab === 'template' && (
               <TemplateSection
-                setRatio={() => {}}
                 setCanvasAssets={setCanvasAssets}
                 setCanvasSize={setCanvasSize}
                 canvasAssets={canvasAssets}
+                selectedLayoutIndex={selectedLayoutIndex}
+                setSelectedLayoutIndex={setSelectedLayoutIndex}
               />
             )}
             {activeTab === 'background' && (
@@ -285,6 +307,8 @@ function Main() {
                   setCanvasAssets={setCanvasAssets}
                   currentAsset={currentAsset}
                   setCurrentAsset={setCurrentAsset}
+                  canvasSize={canvasSize}
+                  selectedLayoutIndex={selectedLayoutIndex}
                 />
               </div>
             )}

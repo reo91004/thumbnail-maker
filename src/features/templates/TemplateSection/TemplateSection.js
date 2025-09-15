@@ -41,25 +41,26 @@ const ratioPresets = [
   },
 ];
 
-function TemplateSection({ setRatio, setCanvasAssets, setCanvasSize, canvasAssets }) {
+function TemplateSection({ setCanvasAssets, setCanvasSize, canvasAssets, selectedLayoutIndex, setSelectedLayoutIndex }) {
   const [selectedRatio, setSelectedRatio] = React.useState('velog');
-  const [selectedLayout, setSelectedLayout] = React.useState(2);
+  const [selectedLayout, setSelectedLayout] = React.useState(selectedLayoutIndex || 2);
   const [customSize, setCustomSize] = React.useState({ width: '', height: '' });
-  let layoutCount = 0;
 
   React.useEffect(() => {
-    // canvasAssets가 비어있을 때만 초기값 설정
     if (!canvasAssets || canvasAssets.length === 0) {
-      // 초기 로드 시 Velog 크기 설정
       const velogPreset = ratioPresets.find((p) => p.id === 'velog');
       if (velogPreset) {
         setCanvasSize({ width: velogPreset.width, height: velogPreset.height });
       }
 
-      // 초기 로드 시 기본 레이아웃 설정 (제목 + 부제 + 소제목)
       if (layoutList[2]) {
         const initialLayout = layoutList[2].layout.map((layout, idx) => {
-          return { ...layout, id: 'layout' + idx };
+          return {
+            ...layout,
+            id: 'layout' + idx,
+            originalX: layout.style.x,
+            originalY: layout.style.y
+          };
         });
         setCanvasAssets(initialLayout);
       }
@@ -73,10 +74,19 @@ function TemplateSection({ setRatio, setCanvasAssets, setCanvasSize, canvasAsset
 
   const handleLayoutSelect = (index) => {
     setSelectedLayout(index);
-    const layout = layoutList[index].layout.map((layout) => {
-      layout.id = 'layout' + layoutCount++;
-      return layout;
+    if (setSelectedLayoutIndex) {
+      setSelectedLayoutIndex(index);
+    }
+
+    const layout = layoutList[index].layout.map((layoutItem, idx) => {
+      return {
+        ...layoutItem,
+        id: `layout_${index}_${idx}`,
+        originalX: layoutItem.style.x,
+        originalY: layoutItem.style.y,
+      };
     });
+
     setCanvasAssets(layout);
   };
 
@@ -165,7 +175,6 @@ function TemplateSection({ setRatio, setCanvasAssets, setCanvasSize, canvasAsset
             </div>
           ))}
 
-          {/* 커스텀 크기 */}
           <div className={`size-card custom ${selectedRatio === 'custom' ? 'active' : ''}`}>
             <div className="card-icon">⚙️</div>
             <div className="card-name">커스텀</div>
@@ -190,7 +199,6 @@ function TemplateSection({ setRatio, setCanvasAssets, setCanvasSize, canvasAsset
         </div>
       </div>
 
-      {/* 레이아웃 템플릿 */}
       <div className="layout-section">
         <h3 className="section-header">레이아웃 템플릿</h3>
         <div className="layout-grid">

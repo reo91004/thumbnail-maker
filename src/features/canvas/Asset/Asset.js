@@ -14,11 +14,12 @@ function Asset(props) {
     setAssetStyle,
     removeAsset,
     updateAssetContent,
+    updateAssetPosition,
   } = props;
   const SNAP_THRESHOLD = 10;
   const [alignmentGuides, setAlignmentGuides] = useState({ horizontal: [], vertical: [] });
-  const sectionForm = document.querySelector('.sidebar');
   const assetBox = useRef(null);
+  const sectionForm = document.querySelector('.sidebar');
   const [currentStyle, setCurrentStyle] = useState({
     ...newAsset.style,
     visibility: 'hidden',
@@ -28,18 +29,11 @@ function Asset(props) {
   const [localStyle, setLocalStyle] = useState(newAsset.style || {});
   const assetComponent = useRef(null);
   const isDragging = useRef(false);
-  let isClicked = useRef(false);
   const isCurrentAsset = currentAsset.id === id;
   const [editing, setEditing] = useState({ pointerEvents: 'none', cursor: 'inherit' });
   const [isLocked, setIsLocked] = useState(newAsset.locked || false);
-  const canvasElement = document.querySelector('#canvas');
-  const canvasRect = canvasElement
-    ? canvasElement.getBoundingClientRect()
-    : { width: 0, height: 0 };
   const [prevCanvasSize, setPrevCanvasSize] = useState({ width: null, height: null });
   const [textContent, setTextContent] = useState(newAsset.name || '');
-
-  // 스마트 정렬 기능
   const checkAlignment = useCallback(
     (x, y, width, height) => {
       const guides = { horizontal: [], vertical: [] };
@@ -48,11 +42,8 @@ function Asset(props) {
       const rightX = x + width;
       const bottomY = y + height;
 
-      // 캔버스 중앙 정렬
       const canvasCenterX = canvasSize.width / 2;
       const canvasCenterY = canvasSize.height / 2;
-
-      // 수직 정렬 체크
       if (Math.abs(centerX - canvasCenterX) < SNAP_THRESHOLD) {
         guides.vertical.push(canvasCenterX);
         x = canvasCenterX - width / 2;
@@ -66,7 +57,6 @@ function Asset(props) {
         x = canvasSize.width - width;
       }
 
-      // 수평 정렬 체크
       if (Math.abs(centerY - canvasCenterY) < SNAP_THRESHOLD) {
         guides.horizontal.push(canvasCenterY);
         y = canvasCenterY - height / 2;
@@ -87,26 +77,37 @@ function Asset(props) {
   );
 
   useEffect(() => {
-    if (canvasElement && assetComponent.current) {
-      setPrevCanvasSize({ ...prevCanvasSize, width: canvasRect.width, height: canvasRect.height });
+    if (assetComponent.current) {
+      setPrevCanvasSize({ width: canvasSize.width, height: canvasSize.height });
       const assetElement = assetComponent.current;
       let assetSize = assetElement.getBoundingClientRect();
       let topPercent = 0.5,
         leftPercent = 0.5;
+
       if (newAsset.type !== 'image') {
-        if (newAsset.style.y) {
+        if (newAsset.style.y && newAsset.style.x) {
           topPercent = Number(newAsset.style.y.replace('%', '')) * 0.01;
           leftPercent = Number(newAsset.style.x.replace('%', '')) * 0.01;
         }
       }
-      let width = newAsset.style.width || canvasRect.width * 0.9,
+
+      let width = newAsset.style.width || canvasSize.width * 0.9,
         height =
           newAsset.type === 'image'
             ? (width * assetSize.height) / assetSize.width
-            : assetSize.height,
-        x = canvasRect.width * leftPercent - width / 2,
-        y = canvasRect.height * topPercent - height / 2;
-      setCurrentStyle({ ...currentStyle, visibility: 'visible', x, y, width, height });
+            : assetSize.height;
+
+      let x = canvasSize.width * leftPercent - width / 2;
+      let y = canvasSize.height * topPercent - height / 2;
+
+      setCurrentStyle({
+        ...currentStyle,
+        visibility: 'visible',
+        x,
+        y,
+        width,
+        height
+      });
     }
   }, []);
 
@@ -144,36 +145,64 @@ function Asset(props) {
     }
   }, [currentAsset]);
 
-  // 부모로부터 style 변경이 있을 때 즉시 반영 (위치는 유지)
   useEffect(() => {
-    if (newAsset.style) {
-      const { x, y, width, height, ...styleWithoutPosition } = newAsset.style;
+    if (newAsset.style && newAsset.style.resetFlag) {
+      const { x, y, width, height, resetFlag, ...styleWithoutPosition } = newAsset.style;
       setLocalStyle(newAsset.style);
+
+      let resetX, resetY;
+      let topPercent = 0.5, leftPercent = 0.5;
+
+      if (typeof x === 'string' && x.includes('%')) {
+        leftPercent = parseFloat(x) / 100;
+      }
+      if (typeof y === 'string' && y.includes('%')) {
+        topPercent = parseFloat(y) / 100;
+      }
+
+      const resetWidth = width || currentStyle.width || canvasSize.width * 0.9;
+      const resetHeight = height || currentStyle.height || 50;
+
+      resetX = canvasSize.width * leftPercent - resetWidth / 2;
+      resetY = canvasSize.height * topPercent - resetHeight / 2;
+
       setCurrentStyle((prev) => ({
         ...prev,
         ...styleWithoutPosition,
-        // 위치와 크기는 현재 값 유지
+        x: resetX,
+        y: resetY,
+      }));
+
+      setTimeout(() => {
+        if (updateAssetPosition) {
+          updateAssetPosition(id, resetX, resetY, true);
+        }
+      }, 0);
+    } else if (newAsset.style && !newAsset.style.resetFlag) {
+      const { x, y, width, height, ...styleWithoutPosition } = newAsset.style;
+      setLocalStyle(newAsset.style);
+
+      setCurrentStyle((prev) => ({
+        ...prev,
+        ...styleWithoutPosition,
         x: prev.x,
         y: prev.y,
         width: prev.width,
         height: prev.height,
       }));
     }
-  }, [newAsset.style]);
+  }, [newAsset.style, id, updateAssetPosition, currentStyle.width, canvasSize]);
 
-  // newAsset.locked 속성이 변경될 때 isLocked 상태 업데이트
   useEffect(() => {
     setIsLocked(newAsset.locked || false);
   }, [newAsset.locked]);
 
-  // newAsset.name 속성이 변경될 때 textContent 상태 업데이트
   useEffect(() => {
     setTextContent(newAsset.name || '');
   }, [newAsset.name]);
 
   useEffect(() => {
     if (isCurrentAsset && assetBox.current) {
-      // 위치 관련 속성 제외하고 스타일 적용
       const { x, y, width, height, ...styleToApply } = assetStyle;
       Object.keys(styleToApply).forEach((key) => {
         if (assetBox.current.style.hasOwnProperty(key)) {
@@ -186,23 +215,32 @@ function Asset(props) {
   }, [assetStyle]);
 
   useEffect(() => {
-    if (prevCanvasSize.width) {
-      const newX =
-        ((currentStyle.x + currentStyle.width / 2) * canvasSize.width) / prevCanvasSize.width;
-      const newY =
-        ((currentStyle.y + currentStyle.height / 2) * canvasSize.height) / prevCanvasSize.height;
-      setCurrentStyle({
-        ...currentStyle,
-        x: newX - currentStyle.width / 2,
-        y: newY - currentStyle.height / 2,
+    if (prevCanvasSize.width && prevCanvasSize.height &&
+        (prevCanvasSize.width !== canvasSize.width || prevCanvasSize.height !== canvasSize.height)) {
+
+      setCurrentStyle((prev) => {
+        const relativeCenterX = (prev.x + prev.width / 2) / prevCanvasSize.width;
+        const relativeCenterY = (prev.y + prev.height / 2) / prevCanvasSize.height;
+
+        const newCenterX = relativeCenterX * canvasSize.width;
+        const newCenterY = relativeCenterY * canvasSize.height;
+
+        const newX = newCenterX - prev.width / 2;
+        const newY = newCenterY - prev.height / 2;
+
+        return {
+          ...prev,
+          x: newX,
+          y: newY,
+        };
       });
-      setPrevCanvasSize({ ...prevCanvasSize, ...canvasSize });
+
+      setPrevCanvasSize({ width: canvasSize.width, height: canvasSize.height });
     }
   }, [canvasSize]);
 
   function handleAssetClick(e, type) {
     e.stopPropagation();
-    isClicked.current = true;
     if (isCurrentAsset) {
       setEditing({ cursor: 'default', pointerEvents: 'inherit' });
       setCurrentStyle({
@@ -247,7 +285,7 @@ function Asset(props) {
     <Rnd
       size={{
         width: currentStyle.width,
-        height: editing.height || currentStyle.height,
+        height: newAsset.type === 'text' ? 'auto' : (editing.height || currentStyle.height),
       }}
       position={{
         x: currentStyle.x,
@@ -256,7 +294,7 @@ function Asset(props) {
       noderef={assetComponent}
       lockAspectRatio={newAsset.shape === 'circle' || newAsset.type === 'image'}
       disableDragging={isLocked}
-      enableResizing={!isLocked}
+      enableResizing={!isLocked && newAsset.type !== 'text'}
       onResizeStart={!isLocked ? handleAssetClick : undefined}
       onDragStart={!isLocked ? handleAssetClick : (e) => e.preventDefault()}
       onResize={(e, direction, ref, delta, position) => {
@@ -271,8 +309,20 @@ function Asset(props) {
       onDragStop={(e, d) => {
         if (!isLocked) {
           const aligned = checkAlignment(d.x, d.y, currentStyle.width, currentStyle.height);
+
+          setCurrentStyle((prev) => ({
+            ...prev,
+            x: aligned.x,
+            y: aligned.y,
+            height: d.node.clientHeight
+          }));
+
           setAssetStyle({ ...assetStyle, x: aligned.x, y: aligned.y, height: d.node.clientHeight });
           setAlignmentGuides({ horizontal: [], vertical: [] });
+
+          if (updateAssetPosition) {
+            updateAssetPosition(id, aligned.x, aligned.y);
+          }
           e.preventDefault();
         }
       }}
@@ -330,7 +380,6 @@ function Asset(props) {
           <img ref={assetBox} crossOrigin="Anonymous" src={newAsset.url} alt={newAsset.name}></img>
         )}
       </div>
-      {/* 정렬 가이드 라인 */}
       {alignmentGuides.horizontal.map((y, index) => (
         <div
           key={`h-${index}`}
