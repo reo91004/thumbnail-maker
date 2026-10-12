@@ -1,30 +1,27 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import './_Main-new.scss';
-import TemplateSection from '../../../features/templates/TemplateSection/TemplateSection.js';
+import TemplateSection, {
+  createLayoutAssets,
+} from '../../../features/templates/TemplateSection/TemplateSection.js';
 import BackgroundForm from '../../../features/background/BackgroundForm.js';
 import AssetsPanel from '../../../features/editor/AssetsPanel/AssetsPanel.js';
 import Asset from '../../../features/canvas/Asset/Asset.js';
+import AlignmentGuides from '../../../features/canvas/AlignmentGuides/AlignmentGuides.js';
 import ThemeToggle from '../../ui/ThemeToggle/ThemeToggle';
 import { BsDownload } from 'react-icons/bs';
 import { MdSave, MdFolderOpen } from 'react-icons/md';
 import html2canvas from 'html2canvas';
 
 function Main() {
-  const [canvasSize, setCanvasSize] = useState({ width: 768, height: 402.094 });
+  const [canvasSize, setCanvasSize] = useState({ width: 768, height: 402 });
   const [background, setBackground] = useState({
     type: 'gradient',
     background: 'linear-gradient(45deg, rgba(255,206,217,1), rgba(160,193,238,1))',
     index: null,
   });
-  const [assetStyle, setAssetStyle] = useState({ fontSize: '14px', height: 'auto', width: 'auto' });
-  const canvasBox = useRef(null);
-  const [canvasAssets, setCanvasAssets] = useState([]);
-  const [currentAsset, setCurrentAsset] = useState({
-    index: null,
-    type: null,
-    style: {},
-    position: {},
-  });
+  const [canvasAssets, setCanvasAssets] = useState(() => createLayoutAssets(2));
+  const [selectedId, setSelectedId] = useState(null);
+  const [guides, setGuides] = useState([]);
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [activeTab, setActiveTab] = useState('template');
@@ -40,17 +37,11 @@ function Main() {
   };
 
   useEffect(() => {
-    if (currentAsset.index !== null) {
-      setAssetStyle({ ...currentAsset.style });
-    }
-  }, [currentAsset]);
-
-  useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const filterNumber = /^[+]?\d+(?:[.]\d+)?$/g;
+  const filterNumber = /^[+]?\d+(?:[.]\d+)?$/;
   function handleResizeCanvas(e) {
     let { name, value } = e.target;
     if (!filterNumber.test(value)) {
@@ -61,7 +52,6 @@ function Main() {
         return;
       }
     }
-    // setRatio(null);
     setCanvasSize({ ...canvasSize, [name]: Number(value) });
   }
 
@@ -85,42 +75,14 @@ function Main() {
     document.body.removeChild(link);
   }
 
-  function removeAsset(targetId) {
-    let filteredAssets = canvasAssets.filter(({ id }) => id !== targetId);
-    setCanvasAssets(filteredAssets);
+  function removeAsset(id) {
+    setCanvasAssets((assets) => assets.filter((asset) => asset.id !== id));
   }
 
-  function updateAssetContent(assetId, newContent) {
-    const updatedAssets = canvasAssets.map((asset) => {
-      if (asset.id === assetId) {
-        return { ...asset, name: newContent };
-      }
-      return asset;
-    });
-    setCanvasAssets(updatedAssets);
-  }
-
-  function updateAssetPosition(assetId, x, y, removeResetFlag = false) {
-    const updatedAssets = canvasAssets.map((asset) => {
-      if (asset.id === assetId) {
-        const updatedStyle = {
-          ...asset.style,
-          x: x,
-          y: y,
-        };
-
-        if (removeResetFlag) {
-          delete updatedStyle.resetFlag;
-        }
-
-        return {
-          ...asset,
-          style: updatedStyle,
-        };
-      }
-      return asset;
-    });
-    setCanvasAssets(updatedAssets);
+  function updateAsset(id, changes) {
+    setCanvasAssets((assets) =>
+      assets.map((asset) => (asset.id === id ? { ...asset, ...changes } : asset))
+    );
   }
 
   function handleSaveProject() {
@@ -141,6 +103,7 @@ function Main() {
       setCanvasSize(project.canvasSize);
       setBackground(project.background);
       setCanvasAssets(project.canvasAssets);
+      setSelectedId(null);
       alert('프로젝트를 불러왔습니다.');
     }
   }
@@ -185,7 +148,7 @@ function Main() {
 
       <div className="main-container">
         <section className="canvas-section">
-          <div className="canvas-wrapper" ref={canvasBox}>
+          <div className="canvas-wrapper">
             <div
               id="canvas"
               className="canvas"
@@ -194,24 +157,22 @@ function Main() {
                 height: canvasSize.height,
                 ...(background.type === 'image'
                   ? { backgroundImage: `url(${background.background})` }
-                  : { background: background.background })
+                  : { background: background.background }),
               }}
             >
-              {canvasAssets.map((element, index) => (
+              {canvasAssets.map((asset) => (
                 <Asset
-                  setCurrentAsset={setCurrentAsset}
-                  currentAsset={currentAsset}
-                  key={element.id}
-                  id={element.id}
+                  key={asset.id}
+                  asset={asset}
                   canvasSize={canvasSize}
-                  newAsset={element}
-                  assetStyle={assetStyle}
-                  setAssetStyle={setAssetStyle}
+                  isSelected={asset.id === selectedId}
+                  setSelectedId={setSelectedId}
+                  updateAsset={updateAsset}
                   removeAsset={removeAsset}
-                  updateAssetContent={updateAssetContent}
-                  updateAssetPosition={updateAssetPosition}
-                ></Asset>
+                  setGuides={setGuides}
+                />
               ))}
+              <AlignmentGuides guides={guides} canvasSize={canvasSize} />
             </div>
           </div>
           <div className="canvas-actions">
@@ -289,15 +250,15 @@ function Main() {
             {activeTab === 'template' && (
               <TemplateSection
                 setCanvasAssets={setCanvasAssets}
+                canvasSize={canvasSize}
                 setCanvasSize={setCanvasSize}
-                canvasAssets={canvasAssets}
                 selectedLayoutIndex={selectedLayoutIndex}
                 setSelectedLayoutIndex={setSelectedLayoutIndex}
               />
             )}
             {activeTab === 'background' && (
               <div className="background-section">
-                <BackgroundForm setBackground={setBackground} />
+                <BackgroundForm background={background} setBackground={setBackground} />
               </div>
             )}
             {activeTab === 'assets' && (
@@ -305,9 +266,10 @@ function Main() {
                 <AssetsPanel
                   assets={canvasAssets}
                   setCanvasAssets={setCanvasAssets}
-                  currentAsset={currentAsset}
-                  setCurrentAsset={setCurrentAsset}
-                  canvasSize={canvasSize}
+                  updateAsset={updateAsset}
+                  removeAsset={removeAsset}
+                  selectedId={selectedId}
+                  setSelectedId={setSelectedId}
                   selectedLayoutIndex={selectedLayoutIndex}
                 />
               </div>

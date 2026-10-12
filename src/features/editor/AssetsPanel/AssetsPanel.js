@@ -1,89 +1,31 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './AssetsPanel.scss';
 import { MdDelete, MdLock, MdLockOpen, MdRestartAlt } from 'react-icons/md';
 
-function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, canvasSize, selectedLayoutIndex }) {
-  const [assetTexts, setAssetTexts] = useState({});
-
-  const handleTextChange = (assetId, newText) => {
-    setAssetTexts({ ...assetTexts, [assetId]: newText });
-
-    // 캔버스의 에셋 업데이트
-    const updatedAssets = assets.map((asset) => {
-      if (asset.id === assetId) {
-        return { ...asset, name: newText };
-      }
-      return asset;
-    });
-    setCanvasAssets(updatedAssets);
-  };
-
+function AssetsPanel({
+  assets,
+  setCanvasAssets,
+  updateAsset,
+  removeAsset,
+  selectedId,
+  setSelectedId,
+  selectedLayoutIndex,
+}) {
   const handleDeleteAsset = (assetId) => {
-    const filteredAssets = assets.filter((asset) => asset.id !== assetId);
-    setCanvasAssets(filteredAssets);
-    if (currentAsset?.id === assetId) {
-      setCurrentAsset({ index: null, type: null, style: {}, position: {} });
+    removeAsset(assetId);
+    if (selectedId === assetId) {
+      setSelectedId(null);
     }
   };
 
-  const toggleLockAsset = (assetId) => {
-    const updatedAssets = assets.map((asset) => {
-      if (asset.id === assetId) {
-        return { ...asset, locked: !asset.locked };
-      }
-      return asset;
-    });
-    setCanvasAssets(updatedAssets);
-  };
-
-  const resetAssetPosition = (assetId) => {
-    const updatedAssets = assets.map((asset) => {
-      if (asset.id === assetId) {
-        const originalX = asset.originalX || '50%';
-        const originalY = asset.originalY || '50%';
-
-        return {
-          ...asset,
-          style: {
-            ...asset.style,
-            x: originalX,
-            y: originalY,
-            resetFlag: true,
-          },
-        };
-      }
-      return asset;
-    });
-    setCanvasAssets(updatedAssets);
-  };
-
-  const handleAssetClick = (asset) => {
-    setCurrentAsset({
-      id: asset.id,
-      index: assets.indexOf(asset),
-      type: asset.type,
-      style: asset.style || {},
-      position: { x: asset.style?.x || 0, y: asset.style?.y || 0 },
+  const resetAssetPosition = (asset) => {
+    updateAsset(asset.id, {
+      style: { ...asset.style, x: asset.originalX || '50%', y: asset.originalY || '50%' },
     });
   };
 
-  const handleStyleChange = (assetId, property, value) => {
-    const updatedAssets = assets.map((asset) => {
-      if (asset.id === assetId) {
-        const { x, y, ...currentStyleWithoutPosition } = asset.style || {};
-        return {
-          ...asset,
-          style: {
-            x,
-            y,
-            ...currentStyleWithoutPosition,
-            [property]: value,
-          },
-        };
-      }
-      return asset;
-    });
-    setCanvasAssets(updatedAssets);
+  const handleStyleChange = (asset, property, value) => {
+    updateAsset(asset.id, { style: { ...asset.style, [property]: value } });
   };
 
   const addNewText = (type) => {
@@ -183,8 +125,8 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
             assets.map((asset, index) => (
               <div
                 key={asset.id}
-                className={`asset-item ${currentAsset?.id === asset.id ? 'selected' : ''} ${asset.locked ? 'locked' : ''}`}
-                onClick={() => handleAssetClick(asset)}
+                className={`asset-item ${selectedId === asset.id ? 'selected' : ''} ${asset.locked ? 'locked' : ''}`}
+                onClick={() => setSelectedId(asset.id)}
               >
                 <div className="asset-header">
                   <span className="asset-number">{index + 1}</span>
@@ -203,7 +145,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                         className="btn-icon"
                         onClick={(e) => {
                           e.stopPropagation();
-                          resetAssetPosition(asset.id);
+                          resetAssetPosition(asset);
                         }}
                         title="위치 초기화"
                       >
@@ -214,7 +156,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                       className="btn-icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleLockAsset(asset.id);
+                        updateAsset(asset.id, { locked: !asset.locked });
                       }}
                       title={asset.locked ? '잠금 해제' : '위치 잠금'}
                     >
@@ -237,8 +179,8 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                   <div className="asset-content">
                     <input
                       type="text"
-                      value={assetTexts[asset.id] !== undefined ? assetTexts[asset.id] : asset.name}
-                      onChange={(e) => handleTextChange(asset.id, e.target.value)}
+                      value={asset.name}
+                      onChange={(e) => updateAsset(asset.id, { name: e.target.value })}
                       onClick={(e) => e.stopPropagation()}
                       placeholder="텍스트 입력"
                       className="text-input"
@@ -246,7 +188,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                   </div>
                 )}
 
-                {currentAsset?.id === asset.id && asset.type === 'text' && (
+                {selectedId === asset.id && asset.type === 'text' && (
                   <div className="asset-properties">
                     <div className="property-group">
                       <h5>텍스트 스타일</h5>
@@ -256,7 +198,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                           type="number"
                           value={parseInt(asset.style?.fontSize) || 16}
                           onChange={(e) =>
-                            handleStyleChange(asset.id, 'fontSize', `${e.target.value}px`)
+                            handleStyleChange(asset, 'fontSize', `${e.target.value}px`)
                           }
                           onClick={(e) => e.stopPropagation()}
                           min="10"
@@ -271,7 +213,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                           value={
                             asset.style?.color?.replace(/rgba?\([^)]+\)/, '#ffffff') || '#ffffff'
                           }
-                          onChange={(e) => handleStyleChange(asset.id, 'color', e.target.value)}
+                          onChange={(e) => handleStyleChange(asset, 'color', e.target.value)}
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
@@ -279,9 +221,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                         <label>굵기</label>
                         <select
                           value={asset.style?.fontWeight || 'normal'}
-                          onChange={(e) =>
-                            handleStyleChange(asset.id, 'fontWeight', e.target.value)
-                          }
+                          onChange={(e) => handleStyleChange(asset, 'fontWeight', e.target.value)}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <option value="normal">보통</option>
@@ -294,9 +234,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                         <label>글꼴</label>
                         <select
                           value={asset.style?.fontFamily || 'Pretendard'}
-                          onChange={(e) =>
-                            handleStyleChange(asset.id, 'fontFamily', e.target.value)
-                          }
+                          onChange={(e) => handleStyleChange(asset, 'fontFamily', e.target.value)}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <option value="Pretendard">Pretendard</option>
@@ -318,7 +256,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                             className={asset.style?.textAlign === 'left' ? 'active' : ''}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStyleChange(asset.id, 'textAlign', 'left');
+                              handleStyleChange(asset, 'textAlign', 'left');
                             }}
                             title="왼쪽 정렬"
                           >
@@ -332,7 +270,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                             }
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStyleChange(asset.id, 'textAlign', 'center');
+                              handleStyleChange(asset, 'textAlign', 'center');
                             }}
                             title="가운데 정렬"
                           >
@@ -342,7 +280,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                             className={asset.style?.textAlign === 'right' ? 'active' : ''}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStyleChange(asset.id, 'textAlign', 'right');
+                              handleStyleChange(asset, 'textAlign', 'right');
                             }}
                             title="오른쪽 정렬"
                           >
@@ -360,7 +298,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                           onClick={(e) => {
                             e.stopPropagation();
                             handleStyleChange(
-                              asset.id,
+                              asset,
                               'textShadow',
                               asset.style?.textShadow ? '' : '2px 2px 2px rgba(0,0,0,.5)'
                             );
@@ -375,7 +313,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                           onClick={(e) => {
                             e.stopPropagation();
                             handleStyleChange(
-                              asset.id,
+                              asset,
                               'fontStyle',
                               asset.style?.fontStyle === 'italic' ? 'normal' : 'italic'
                             );
@@ -390,7 +328,7 @@ function AssetsPanel({ assets, setCanvasAssets, currentAsset, setCurrentAsset, c
                           onClick={(e) => {
                             e.stopPropagation();
                             handleStyleChange(
-                              asset.id,
+                              asset,
                               'textDecoration',
                               asset.style?.textDecoration === 'underline' ? 'none' : 'underline'
                             );

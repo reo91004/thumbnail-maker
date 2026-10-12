@@ -41,62 +41,41 @@ const ratioPresets = [
   },
 ];
 
-function TemplateSection({ setCanvasAssets, setCanvasSize, canvasAssets, selectedLayoutIndex, setSelectedLayoutIndex }) {
-  const [selectedRatio, setSelectedRatio] = React.useState('velog');
-  const [selectedLayout, setSelectedLayout] = React.useState(selectedLayoutIndex || 2);
+export function createLayoutAssets(index) {
+  return layoutList[index].layout.map((item, idx) => ({
+    ...item,
+    id: `layout_${index}_${idx}`,
+    originalX: item.style.x,
+    originalY: item.style.y,
+  }));
+}
+
+function TemplateSection({
+  setCanvasAssets,
+  canvasSize,
+  setCanvasSize,
+  selectedLayoutIndex,
+  setSelectedLayoutIndex,
+}) {
   const [customSize, setCustomSize] = React.useState({ width: '', height: '' });
-
-  React.useEffect(() => {
-    if (!canvasAssets || canvasAssets.length === 0) {
-      const velogPreset = ratioPresets.find((p) => p.id === 'velog');
-      if (velogPreset) {
-        setCanvasSize({ width: velogPreset.width, height: velogPreset.height });
-      }
-
-      if (layoutList[2]) {
-        const initialLayout = layoutList[2].layout.map((layout, idx) => {
-          return {
-            ...layout,
-            id: 'layout' + idx,
-            originalX: layout.style.x,
-            originalY: layout.style.y
-          };
-        });
-        setCanvasAssets(initialLayout);
-      }
-    }
-  }, [canvasAssets, setCanvasAssets, setCanvasSize]);
+  const selectedRatio =
+    ratioPresets.find((p) => p.width === canvasSize.width && p.height === canvasSize.height)?.id ??
+    'custom';
 
   const handleRatioSelect = (preset) => {
-    setSelectedRatio(preset.id);
     setCanvasSize({ width: preset.width, height: preset.height });
   };
 
   const handleLayoutSelect = (index) => {
-    setSelectedLayout(index);
-    if (setSelectedLayoutIndex) {
-      setSelectedLayoutIndex(index);
-    }
-
-    const layout = layoutList[index].layout.map((layoutItem, idx) => {
-      return {
-        ...layoutItem,
-        id: `layout_${index}_${idx}`,
-        originalX: layoutItem.style.x,
-        originalY: layoutItem.style.y,
-      };
-    });
-
-    setCanvasAssets(layout);
+    setSelectedLayoutIndex(index);
+    setCanvasAssets(createLayoutAssets(index));
   };
 
   const handleCustomSize = () => {
-    if (customSize.width && customSize.height) {
-      setSelectedRatio('custom');
-      setCanvasSize({
-        width: parseInt(customSize.width),
-        height: parseInt(customSize.height),
-      });
+    const width = parseInt(customSize.width);
+    const height = parseInt(customSize.height);
+    if (width > 0 && height > 0) {
+      setCanvasSize({ width, height });
     }
   };
 
@@ -205,7 +184,7 @@ function TemplateSection({ setCanvasAssets, setCanvasSize, canvasAssets, selecte
           {layoutList.map((layout, index) => (
             <div
               key={index}
-              className={`layout-card ${selectedLayout === index ? 'active' : ''}`}
+              className={`layout-card ${selectedLayoutIndex === index ? 'active' : ''}`}
               onClick={() => handleLayoutSelect(index)}
             >
               <div className="layout-preview">{getLayoutPreview(layout)}</div>
@@ -214,7 +193,7 @@ function TemplateSection({ setCanvasAssets, setCanvasSize, canvasAssets, selecte
                 {index === 1 && '제목 + 부제'}
                 {index === 2 && '제목 + 부제 + 소제목'}
               </div>
-              {selectedLayout === index && <div className="selected-badge">✓</div>}
+              {selectedLayoutIndex === index && <div className="selected-badge">✓</div>}
             </div>
           ))}
         </div>

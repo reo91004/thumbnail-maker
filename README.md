@@ -53,7 +53,7 @@ Velog나 개발 블로그, 유튜브 등의 플랫폼에서 쉽게 썸네일을 
 
 ## 🛠 기술 스택
 
-- **Frontend**: React 18.2.0
+- **Frontend**: React 17
 - **Styling**: Sass, CSS Modules
 - **Canvas**: html2canvas
 - **Drag & Drop**: react-rnd
